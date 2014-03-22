@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RAW2BMP", "RAW2BMP\RAW2BMP.vcxproj", "{B2BB7AE8-669E-4E6D-B932-0300009C74AB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "2562BMP", "2562BMP\2562BMP.vcxproj", "{DF5FFBCD-0270-41ED-8078-3FF9A8A46EEC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B2BB7AE8-669E-4E6D-B932-0300009C74AB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B2BB7AE8-669E-4E6D-B932-0300009C74AB}.Debug|Win32.Build.0 = Debug|Win32
+		{B2BB7AE8-669E-4E6D-B932-0300009C74AB}.Release|Win32.ActiveCfg = Release|Win32
+		{B2BB7AE8-669E-4E6D-B932-0300009C74AB}.Release|Win32.Build.0 = Release|Win32
+		{DF5FFBCD-0270-41ED-8078-3FF9A8A46EEC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DF5FFBCD-0270-41ED-8078-3FF9A8A46EEC}.Debug|Win32.Build.0 = Debug|Win32
+		{DF5FFBCD-0270-41ED-8078-3FF9A8A46EEC}.Release|Win32.ActiveCfg = Release|Win32
+		{DF5FFBCD-0270-41ED-8078-3FF9A8A46EEC}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
