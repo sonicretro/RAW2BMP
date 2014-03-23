@@ -54,6 +54,8 @@ enum errcode
 	UnsupportedCompressionFormat
 };
 
+struct rgb { uint8_t red, green, blue; };
+
 int wmain(int argc, wchar_t *argv[])
 {
 	for (size_t i = 0; i < LengthOfArray(filesizes); i++)
@@ -139,72 +141,221 @@ int wmain(int argc, wchar_t *argv[])
 			wcout << L"Unsupported bitmap version." << endl;
 			return UnsupportedBitmapVersion;
 		}
-		if (bmpinfo.biBitCount != 24 && bmpinfo.biBitCount != 32)
-		{
-			wcout << L"Unsupported pixel format." << endl;
-			return UnsupportedPixelFormat;
-		}
 		if (bmpinfo.biCompression != BI_RGB)
 		{
 			wcout << L"Unsupported compression format." << endl;
 			return UnsupportedCompressionFormat;
 		}
-		input.seekg(bmpinfo.biClrUsed * sizeof(RGBQUAD), ios_base::cur);
-		if (argc > 2)
-			fn = argv[2];
-		else if (bmpinfo.biWidth == 320 && abs(bmpinfo.biHeight) == 384)
-			wcscpy(ext, plyext);
-		else
-			wcscpy(ext, rawext);
-		int rowsize = bmpinfo.biWidth * 3;
-		int size = abs(bmpinfo.biHeight) * rowsize;
-		char *raw = new char[size];
-		int padding = 0;
+		int rowsize = bmpinfo.biWidth * (int)ceil(bmpinfo.biBitCount / 8.0);
+		int size = abs(bmpinfo.biHeight) * bmpinfo.biWidth;
+		rgb *raw = new rgb[size];
+		int padding = rowsize % 4;
+		if (padding != 0)
+			padding = 4 - padding;
+		RGBQUAD *palette = nullptr;
 		switch (bmpinfo.biBitCount)
 		{
-		case 24:
-			padding = rowsize % 4;
-			if (padding != 0)
-				padding = 4 - padding;
+		case 1:
+			palette = new RGBQUAD[bmpinfo.biClrUsed];
+			input.read((char *)palette, bmpinfo.biClrUsed * sizeof(RGBQUAD));
 			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
 			{
-				char *row;
+				rgb *row;
 				if (bmpinfo.biHeight < 0)
-					row = &raw[y * rowsize];
+					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * rowsize];
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+				for (int x = 0; x < bmpinfo.biWidth; x += 8)
+				{
+					uint8_t byte = input.get();
+					RGBQUAD pix = palette[byte >> 7];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 1 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 6) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 2 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 5) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 3 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 4) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 4 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 3) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 5 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 2) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 6 == bmpinfo.biWidth)
+						continue;
+					pix = palette[(byte >> 1) & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 7 == bmpinfo.biWidth)
+						continue;
+					pix = palette[byte & 1];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+				}
+				if (padding != 0)
+					input.seekg(padding, ios_base::cur);
+			}
+			break;
+		case 4:
+			palette = new RGBQUAD[bmpinfo.biClrUsed];
+			input.read((char *)palette, bmpinfo.biClrUsed * sizeof(RGBQUAD));
+			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
+			{
+				rgb *row;
+				if (bmpinfo.biHeight < 0)
+					row = &raw[y * bmpinfo.biWidth];
+				else
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+				for (int x = 0; x < bmpinfo.biWidth; x += 2)
+				{
+					uint8_t byte = input.get();
+					RGBQUAD pix = palette[byte >> 4];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+					if (x + 1 == bmpinfo.biWidth)
+						continue;
+					pix = palette[byte & 0xF];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+				}
+				if (padding != 0)
+					input.seekg(padding, ios_base::cur);
+			}
+			break;
+		case 8:
+			palette = new RGBQUAD[bmpinfo.biClrUsed];
+			input.read((char *)palette, bmpinfo.biClrUsed * sizeof(RGBQUAD));
+			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
+			{
+				rgb *row;
+				if (bmpinfo.biHeight < 0)
+					row = &raw[y * bmpinfo.biWidth];
+				else
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
-					row[2] = input.get();
-					row[1] = input.get();
-					row[0] = input.get();
-					row += 3;
+					RGBQUAD pix = palette[input.get()];
+					row->red = pix.rgbRed;
+					row->green = pix.rgbGreen;
+					row->blue = pix.rgbBlue;
+					row++;
+				}
+				if (padding != 0)
+					input.seekg(padding, ios_base::cur);
+			}
+			break;
+		case 16:
+			input.seekg(bmpinfo.biClrUsed * sizeof(RGBQUAD), ios_base::cur);
+			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
+			{
+				rgb *row;
+				if (bmpinfo.biHeight < 0)
+					row = &raw[y * bmpinfo.biWidth];
+				else
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+				for (int x = 0; x < bmpinfo.biWidth; x++)
+				{
+					uint16_t pix;
+					input.read((char *)&pix, sizeof(uint16_t));
+					row->red = (pix >> 10) & 0x1F;
+					row->red = (row->red << 3) | (row->red >> 2);
+					row->green = (pix >> 5) & 0x1F;
+					row->green = (row->green << 3) | (row->green >> 2);
+					row->blue = pix & 0x1F;
+					row->blue = (row->blue << 3) | (row->blue >> 2);
+					row++;
+				}
+				if (padding != 0)
+					input.seekg(padding, ios_base::cur);
+			}
+			break;
+		case 24:
+			input.seekg(bmpinfo.biClrUsed * sizeof(RGBQUAD), ios_base::cur);
+			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
+			{
+				rgb *row;
+				if (bmpinfo.biHeight < 0)
+					row = &raw[y * bmpinfo.biWidth];
+				else
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+				for (int x = 0; x < bmpinfo.biWidth; x++)
+				{
+					row->blue = input.get();
+					row->green = input.get();
+					row->red = input.get();
+					row++;
 				}
 				if (padding != 0)
 					input.seekg(padding, ios_base::cur);
 			}
 			break;
 		case 32:
+			input.seekg(bmpinfo.biClrUsed * sizeof(RGBQUAD), ios_base::cur);
 			for (int y = 0; y < abs(bmpinfo.biHeight); y++)
 			{
-				char *row;
+				rgb *row;
 				if (bmpinfo.biHeight < 0)
-					row = &raw[y * rowsize];
+					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * rowsize];
+					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
-					row[2] = input.get();
-					row[1] = input.get();
-					row[0] = input.get();
-					input.get();
-					row += 3;
+					uint32_t pix;
+					input.read((char *)&pix, sizeof(uint32_t));
+					row->red = (pix >> 16) & 0xFF;
+					row->green = (pix >> 8) & 0xFF;
+					row->blue = pix & 0xFF;
+					row++;
 				}
 			}
 			break;
+		default:
+			wcout << L"Unsupported pixel format." << endl;
+			return UnsupportedPixelFormat;
 		}
+		if (argc > 2)
+			fn = argv[2];
+		else if (bmpinfo.biWidth == 320 && abs(bmpinfo.biHeight) == 384)
+			wcscpy(ext, plyext);
+		else
+			wcscpy(ext, rawext);
 		ofstream output(fn, ios_base::binary | ios_base::trunc);
-		output.write(raw, size);
+		output.write((char *)raw, size * sizeof(rgb));
 		output.close();
 		return Success;
 	}
