@@ -148,7 +148,7 @@ int wmain(int argc, wchar_t *argv[])
 			if (bmpinfo.biHeight < 0)
 				row = &raw[y * bmpinfo.biWidth];
 			else
-				row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+				row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 			input.read(raw, bmpinfo.biWidth);
 			if (padding != 0)
 				input.seekg(padding, ios_base::cur);

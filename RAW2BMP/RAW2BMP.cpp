@@ -14,33 +14,15 @@ const wchar_t *const rawext = L".raw";
 const wchar_t *const plyext = L".ply";
 const wchar_t *const bmpext = L".bmp";
 
-const int filesizes[] = {
-	21504,
-	23040,
-	49152,
-	196608,
-	638976,
-	921600,
-	368640
+map<int, SIZE> sizes = {
+	{ 21504, { 32, 224 } },
+	{ 23040, { 96, 80 } },
+	{ 49152, { 128, 128 } },
+	{ 196608, { 256, 256 } },
+	{ 638976, { 1664, 128 } },
+	{ 921600, { 640, 480 } },
+	{ 368640, { 320, 384 } }
 };
-
-const SIZE bmpsizes[] = {
-	{ 32, 224 },
-	{ 96, 80 },
-	{ 128, 128 },
-	{ 256, 256 },
-	{ 1664, 128 },
-	{ 640, 480 },
-	{ 320, 384 }
-};
-
-map<int, SIZE> sizes;
-
-template <typename T, size_t N>
-inline size_t LengthOfArray( const T(&)[ N ] )
-{
-	return N;
-}
 
 enum errcode
 {
@@ -58,8 +40,6 @@ struct rgb { uint8_t red, green, blue; };
 
 int wmain(int argc, wchar_t *argv[])
 {
-	for (size_t i = 0; i < LengthOfArray(filesizes); i++)
-		sizes[filesizes[i]] = bmpsizes[i];
 	wchar_t *fn;
 	if (argc > 1)
 		fn = argv[1];
@@ -164,7 +144,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x += 8)
 				{
 					uint8_t byte = input.get();
@@ -236,7 +216,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x += 2)
 				{
 					uint8_t byte = input.get();
@@ -266,7 +246,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
 					RGBQUAD pix = palette[input.get()];
@@ -287,7 +267,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
 					uint16_t pix;
@@ -312,7 +292,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
 					row->blue = input.get();
@@ -332,7 +312,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (bmpinfo.biHeight < 0)
 					row = &raw[y * bmpinfo.biWidth];
 				else
-					row = &raw[(y - bmpinfo.biHeight - 1) * bmpinfo.biWidth];
+					row = &raw[(bmpinfo.biHeight - y - 1) * bmpinfo.biWidth];
 				for (int x = 0; x < bmpinfo.biWidth; x++)
 				{
 					uint32_t pix;
