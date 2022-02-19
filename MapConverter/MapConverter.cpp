@@ -73,6 +73,8 @@ struct tile
 				snowsrc += snowstride;
 			}
 		}
+		else
+			snow = nullptr;
 	}
 
 	~tile()
@@ -150,7 +152,7 @@ int wmain(int argc, wchar_t* argv[])
 		wcscpy(file2, file1);
 		wcscpy(PathFindExtensionW(file2), L"_s");
 		PathAddExtensionW(file2, PathFindExtensionW(file1));
-		BitmapData bmpd2;
+		BitmapData bmpd2{};
 		if (PathFileExistsW(file2))
 		{
 			bmp2 = new Bitmap(file2);
@@ -202,7 +204,10 @@ int wmain(int argc, wchar_t* argv[])
 				snowdata += bmpd2.Stride * theight;
 		}
 		if (tiles.size() > 120)
-			printf("Too many unique tiles in source image(s)! Must be lower than 120 (was %d).\n", tiles.size());
+		{
+			printf("Too many unique tiles in source image(s)! Must be less than or equal to 120 (was %d).\n", tiles.size());
+			getchar();
+		}
 		wcscpy(file2, file1);
 		wchar_t* fnend = wcsstr(file2, L"_map");
 		if (fnend == nullptr)
@@ -214,7 +219,7 @@ int wmain(int argc, wchar_t* argv[])
 		bmp->UnlockBits(&bmpd);
 		delete bmp;
 		rect.Width = twidth * 10;
-		rect.Height = theight * 10;
+		rect.Height = theight * 12;
 		bmp = new Bitmap(rect.Width, rect.Height, PixelFormat32bppARGB);
 		bmp->LockBits(&rect, ImageLockModeWrite, PixelFormat32bppARGB, &bmpd);
 		regdata = static_cast<uint8_t*>(bmpd.Scan0);
